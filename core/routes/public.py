@@ -334,7 +334,7 @@ def newitemtracker():
     items: List[Item] = Item.query.filter(
         not_(or_(col.contains("Repeat Appearance") for col in TagCols)) #type:ignore
     ).order_by(Item.ItemOrder).all()
-    
+    count = len(items)
     crateList: List[Crate] = Crate.query.order_by(Crate.id).all()
     for crate in crateList:
         itemNames = []
@@ -358,7 +358,7 @@ def newitemtracker():
                 else:
                     idToCrateList[crate.CrateName] = [item.id]
                     sortedItems[crate.CrateName] = [formattedItem]
-    return render_template("public/newtracker.html", sortedItems = sortedItems, idCrateList = idToCrateList, validTags = c.validTags, page="newtracker")
+    return render_template("public/newtracker.html", sortedItems = sortedItems, idCrateList = idToCrateList, validTags = c.validTags, page="newtracker", count=count)
 
 
 @app.route('/miscitemtracker', methods=('GET', 'POST'))
@@ -383,7 +383,7 @@ def miscitemtracker():
     sortedItems = {}
     idToCrateList = {}
     items: List[MiscellaneousItem] = MiscellaneousItem.query.order_by(MiscellaneousItem.ItemOrder).all()
-
+    count = len(items)
     
     groupList: List[MiscellaneousGroup] = MiscellaneousGroup.query.order_by(MiscellaneousGroup.GroupOrder).all()
     groupTypes = []
@@ -411,7 +411,7 @@ def miscitemtracker():
                 else:
                     idToCrateList[group.GroupName] = [item.id]
                     sortedItems[group.GroupName] = [formattedItem]
-    return render_template("public/newtracker.html", sortedItems = sortedItems, idCrateList = idToCrateList, validTags = groupTypes, page="miscitemtracker")
+    return render_template("public/newtracker.html", sortedItems = sortedItems, idCrateList = idToCrateList, validTags = groupTypes, page="miscitemtracker", count=count)
 
 
 

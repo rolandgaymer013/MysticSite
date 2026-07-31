@@ -39,42 +39,48 @@
             </div>
         </div>
     </div>
-    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-8 col-xl-8 col-xxl-9">
+    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-3">
+        <div class="card h-100 text-white bg-dark border-white">
+            <h3 class="card-header border-white">Collected</h3>
+            <div class="card-body weird-margins">
+                <span id="collectedCount">0</span>/<span id="totalShown">0</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-6">
         <form  method="post" id="exportForm">
             <textarea class="form-control" id="importCode" name="importCode" value="" rows="5"></textarea>
         </form>
     </div>
-    <div class="col-12">
-        <div class="row text-center">
-            <div class="col-xs-3 col-sm-6 col-md-3 mt-3">
-                <button type="submit" form="exportForm" class="btn btn-danger">
-                    Upload Data
-                </button>
-            </div>
-
-            <div class="col-xs-3 col-sm-6 col-md-3 mt-3">
-                <button class="btn btn-danger" onclick="checkAll()">
-                    Check All
-                </button>
-            </div>
-            <div class="col-xs-3 col-sm-6 col-md-3 mt-3">
-                <button class="btn btn-danger" onclick="uncheckAll()">
-                    Uncheck All
-                </button>
-            </div>
-            <div class="col-xs-3 col-sm-6 col-md-3 mt-3">
-                <button class="btn btn-danger" onclick="importCode()">
-                    Import from text
-                </button>
-            </div>
-            <div class="col-xs-3 col-sm-6 col-md-3 mt-3">
-                <button class="btn btn-danger" onclick="copyToClipBoard()">
-                    Copy To Clipboard
-                </button>
-            </div>
-        </div>
+</div>
+<div class="container-fluid px-0 mb-3">
+  <!-- Stacks on mobile, acts as an equal-width flex container on 'md' screens and up -->
+  <div class="row g-2 d-flex flex-column flex-sm-row justify-content-md-center">
+      <div class="col text-center">
+            <button type="submit" form="exportForm" class="btn btn-danger">
+                Upload Data
+            </button></div>
+    <div class="col text-center">
+            <button class="btn btn-danger" onclick="checkAll()">
+                Check All
+            </button>
     </div>
-
+    <div class="col text-center">
+            <button class="btn btn-danger" onclick="uncheckAll()">
+                Uncheck All
+            </button>
+    </div>
+    <div class="col text-center">
+            <button class="btn btn-danger" onclick="importCode()">
+                Import from text
+            </button>
+    </div>
+    <div class="col text-center">
+            <button class="btn btn-danger" onclick="copyToClipBoard()">
+                Copy To Clipboard
+            </button>
+    </div>
+  </div>
 </div>
 {% if page == "miscitemtracker" %}
 {% set baseURL = 'images/' ~ ServerName ~ '_Misc_Icons/' %}
@@ -132,9 +138,12 @@
 
     function updateShownItems() {
         tagSelect = document.getElementById("tagSelection")
+        totalShown = document.getElementById("totalShown")
         console.log(tagSelect.value)
+        var totalItems = 0
         for (let crateName in sortedItems) {
             for (let item in sortedItems[crateName]) {
+                
                 if (tagSelect.value == "") {
                     doesItemHaveTag = true
                 } else {
@@ -149,8 +158,10 @@
                     }
                 } else {
                     itemDiv.classList.remove('d-none')
+                    totalItems += 1
                     if (missingDiv) {
                         missingDiv.classList.remove('d-none')
+                        
                     }
                 }
             }
@@ -158,6 +169,8 @@
         var grid = document.getElementById("grid")
         var msnry = new Masonry(grid, {percentPosition: true})
         msnry.reloadItems()
+        totalShown.innerHTML = totalItems
+        updateCounter()
     }
 
     window.onload = function () {
@@ -186,13 +199,29 @@
             importCode();
         }
     }
+    function updateCounter() {
+        let checkboxes = document.getElementsByName('item')
+        let count = document.getElementById("collectedCount")
+        var counter = 0
+        for (var i=0;i<checkboxes.length;i++) {
+            if (checkboxes[i].checked) { 
+                if(!checkboxes[i].closest(".d-none")) {
+                    console.log(checkboxes[i].parentElement.classList)
+                    counter += 1
+                }
+            }
+        }
+        count.innerHTML = counter
+    }
     function updateMissingItemList() {
         let checkboxes = document.getElementsByName('item')
         let missingItems = document.getElementById("resList")
+        let count = document.getElementById("collectedCount")
         missingItems.replaceChildren() // empty missing items list
-
+        var counter = 0
         for (var i=0;i<checkboxes.length;i++) {
-            if (checkboxes[i].checked) { } else {
+            if (checkboxes[i].checked) { 
+            } else {
                 let crateName = checkboxes[i].parentElement.parentElement.children[0].textContent
                 let crateResDiv = document.getElementById(crateName)
                 if (crateResDiv) { } else {
@@ -211,7 +240,9 @@
                 missingItems.appendChild(emptyDiv);
             }
         }
+        count.innerHTML = counter
         updateShownItems()
+        updateCounter()
     }
     
     function exportCode() {
