@@ -340,11 +340,11 @@ def newitemtracker():
         itemNames = []
         for item in items:
             name = item.ItemName
-            #if item.ItemNameHTML in itemNames:
-            #    name = item.ItemName
-            #else:
-            #    name= item.ItemNameHTML
-            #    itemNames.append(item.ItemNameHTML)
+            if item.ItemNameHTML in itemNames or "(" in item.ItemName:
+                name = item.ItemName
+            else:
+                name= item.ItemNameHTML
+                itemNames.append(item.ItemNameHTML)
             formattedItem = {
                 "Name" : name,
                 "id" : item.id,
