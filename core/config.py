@@ -387,6 +387,10 @@ Changelog = {
     "4/5/2026" : [
         ("mc-gold", "Users now have the ability to reset their passwords when logged in."),
         ("mc-gold", "Site admins can now force a password reset if a user cannot log in for some reason or another."),
+    ],
+    "7/31/2026" : [
+        ("mc-gold", "Item Tracker now shows the colorful names of items, when no duplicates exist with that same name."),
+        ("mc-gold", "Item Tracker now shows the number of items collected out of how many exist."),
     ]
     
 }
