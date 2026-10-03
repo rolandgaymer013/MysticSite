@@ -227,19 +227,40 @@ def group(groupTag):
 @app.route('/groups')
 def groupPage():
     groups: List[MiscellaneousGroup] = MiscellaneousGroup.query.order_by(MiscellaneousGroup.GroupOrder).all()
-    groupList = {
-        "" : []
-        }
+    
+    grouped_data = {}
+    
     for groupType in c.validMiscGroupTypes:
-        groupList[groupType] = []
+        grouped_data[groupType] = {}
+    grouped_data["Unsorted"] = {}
+
     for group in groups:
-        for key in groupList.keys():
-            if group.GroupType == key:
-                groupList[key].append(group)
-    for key in list(groupList.keys()):
-        if len(groupList[key]) == 0:
-            del groupList[key]
-    return render_template("public/groups.html", SortedGroups = groupList)
+        g_type = group.GroupType if group.GroupType in grouped_data else "Unsorted"
+        
+        if " - " in group.GroupName:
+            parts = group.GroupName.split(" - ", 1)
+            series_name = parts[0].strip()
+            sub_category = parts[1].strip()
+        else:
+            series_name = group.GroupName.strip()
+            sub_category = "Full Set"
+
+        if series_name not in grouped_data[g_type]:
+            grouped_data[g_type][series_name] = {
+                "release_date": group.ReleaseDate or "",
+                "sub_items": []
+            }
+        
+        grouped_data[g_type][series_name]["sub_items"].append({
+            "sub_category": sub_category,
+            "url_tag": group.URLTag,
+            "full_name": group.GroupName,
+            "release_date": group.ReleaseDate or ""
+        })
+
+    cleaned_data = {k: v for k, v in grouped_data.items() if len(v) > 0}
+
+    return render_template("public/groups.html", Hierarchy=cleaned_data)
 
 
 @app.route('/tags')

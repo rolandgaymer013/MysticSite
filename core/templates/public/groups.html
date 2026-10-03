@@ -2,36 +2,62 @@
 {% block content %}
 <div class="row gx-3 gy-3 mb-3">
     <div class="col-12">
-        <div class="card text-white bg-dark">
-            <div class="card-body">
-                <h4 class="card-title">Miscellaneous Groups</h4>
+        <div class="card text-white bg-dark border-secondary shadow-sm">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="card-title mb-1">Miscellaneous Groups</h4>
+                    <span class="text-secondary small">Browse custom sets, crate releases, furniture, and vouchers organized by theme.</span>
+                </div>
             </div>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item mc-gold bg-dark">Miscellaneous Groups are sorted below, based on their type, and release date.</li>
-            </ul>
         </div>
     </div>
 </div>
 
-<div class="row gx-3 gy-3">
-    {% for Type, Groups in SortedGroups.items() %}
-    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-3">
-        <div class="card text-white bg-dark">
-            <div class="card-body">
-                {% if Type == "" %}
-                    <h4 class="card-title">Unsorted</h4>
-                {% else %}
-                <h4 class="card-title">{{ Type }}</h4>
-                {% endif %}
-            </div>
-            <ul class="list-group list-group-flush">
-                {% for group in Groups %}
-                <li class="list-group-item mc-white bg-dark"><a href="{{ url_for('group', groupTag=group.URLTag) }}">{{group.GroupName}}</a> - {{group.ReleaseDate}}</li>
-                {% endfor %}
-            </ul>
+<!-- Type Sections -->
+{% for type_name, series_dict in Hierarchy.items() %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center mb-2 pb-1 border-bottom border-secondary">
+            <h5 class="mc-gold mb-0 me-2">{{ type_name }}</h5>
+            <span class="badge bg-secondary rounded-pill">{{ series_dict|length }} series</span>
         </div>
     </div>
 
-    {% endfor %}
+    <!-- Grid of Series / Crate Cards -->
+    <div class="col-12">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-3">
+            {% for series_name, series_info in series_dict.items() %}
+            <div class="col">
+                <div class="card h-100 text-white bg-dark border-secondary">
+                    <div class="card-body p-3 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title text-info mb-0 text-truncate" title="{{ series_name }}">
+                                {{ series_name }}
+                            </h6>
+                            {% if series_info.release_date %}
+                            <span class="badge bg-black text-muted border border-secondary" style="font-size: 0.72rem;">
+                                {{ series_info.release_date }}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Sub-Category Pill Links (Touch-Friendly) -->
+                        <div class="d-flex flex-wrap gap-1 mt-auto pt-2">
+                            {% for item in series_info.sub_items %}
+                            <a href="{{ url_for('group', groupTag=item.url_tag) }}" 
+                               class="btn btn-sm btn-outline-light text-nowrap my-1" 
+                               style="font-size: 0.82rem; padding: 0.35rem 0.65rem; border-radius: 6px;"
+                               title="{{ item.full_name }}">
+                               {{ item.sub_category }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
+{% endfor %}
 {% endblock %}
