@@ -19,6 +19,23 @@
     </div>
 </div>
 <div class="row gx-3 gy-3">
+    <!-- Raw Lore JSON Box -->
+    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-3">
+        <div class="give-preview-text-outer">
+            <div class="give-preview-text w-100">
+                <div class="give-preview-text-inner">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label text-muted small mb-0">Raw Lore JSON</label>
+                        <button type="button" class="btn btn-outline-info btn-sm py-0 px-2" style="font-size: 0.75rem;" onclick="prettifyJSON(); UpdatePreview();">
+                            Format / Indent
+                        </button>
+                    </div>
+                    <textarea class="form-control font-monospace" id="rawData" rows="22" style="font-size: 0.8rem;">{{ item.RawData if item.RawData else '' }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-3">
         <div class="give-preview-text-outer">
             <div class="give-preview-text w-100">
@@ -146,12 +163,23 @@
                             <label for="ItemNameGroup">Item Name</label>
                         </div>
                         <div class="form-floating mb-3">
+                            <input type="text" class="form-control" name='ItemNameHTML' id="ItemNameHTMLGroup" placeholder="Item Name HTML" value="{{ item.ItemNameHTML }}">
+                            <label for="ItemNameHTMLGroup">Item Name HTML</label>
+                        </div>
+                        <div class="form-floating mb-3">
                             <input type="text" class="form-control" name='WinPercentage' id="WinPercentageGroup"
                                 placeholder="Win Percentage" value="{{item.WinPercentage}}">
                             <label for="WinPercentageGroup">Win Percentage</label>
                         </div>
                         {% endif %}
                         <button class="btn btn-primary mb-1" type="submit">Submit Changes</button>
+                    
+                        <!-- Dynamic Hidden Fields for Lore & Rarity Updates -->
+                        <input type="hidden" name="RawData" id="RawData" value="{{ item.RawData if item.RawData else '' }}">
+                        <input type="hidden" name="HumanData" id="HumanData" value="{{ item.ItemHuman if item.ItemHuman else '' }}">
+                        <input type="hidden" name="HTMLData" id="HTMLData" value="{{ item.ItemHTML if item.ItemHTML else '' }}">
+                        <input type="hidden" name="Rarity" id="RarityGroup" value="{{ item.RarityHuman if item.RarityHuman else '' }}">
+                        <input type="hidden" name="RarityHTML" id="RarityHTMLGroup" value="{{ item.RarityHTML if item.RarityHTML else '' }}">
                     </form>
                 </div>
             </div>
@@ -159,14 +187,13 @@
     </div>
     {% if current_user.permissions >= 40 %}
     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-3">
-        <div class="card bg-dark border-white">
+        <div class="card bg-dark border-white mb-3">
             <h3 class="card-header border-white text-white">Upload Icon Image</h3>
             <div class="card-body weird-margins" id="colorsContainer">
-                <form method="post" id="exportForm" enctype=multipart/form-data>
+                <form method="post" id="exportForm" enctype="multipart/form-data">
                     <div class="mb-3">
-                        <label for="DescriptionGroup">.png or .gif File</label>
-                        <input type="file" class="form-control" name='file' id="DescriptionGroup"
-                            placeholder="Select .png or .gif file">
+                        <label for="DescriptionGroup" class="form-label text-white">.png or .gif File</label>
+                        <input type="file" class="form-control" name='file' id="DescriptionGroup" placeholder="Select .png or .gif file">
                     </div>
                     <button type="submit" name="FileForm" class="btn btn-danger">
                         Upload Data
@@ -174,18 +201,434 @@
                 </form>
             </div>
         </div>
-    </div>
-    {% endif %}
-    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-3">
         <div class="give-preview-text-outer">
             <div class="give-preview-text w-100">
-                <div class="give-preview-text-inner">
-                    <img height='108' width='108'
-                        src="{{url_for('static', filename='images/' ~ ServerName ~ '_Icons/' ~ item.id ~ '.' ~ item.ImageType)}}">
+                <div class="give-preview-text-inner text-center py-3">
+                    <img height='108' width='108' src="{{url_for('static', filename='images/' ~ ServerName ~ '_Icons/' ~ item.id ~ '.' ~ item.ImageType)}}" alt="Item Icon">
                 </div>
             </div>
         </div>
     </div>
+    {% endif %}
+</div>
 </div>
 
+
+<script>
+    var rawDataTextarea = document.getElementById("rawData");
+    if (rawDataTextarea.addEventListener) {
+        rawDataTextarea.addEventListener('input', function () {
+            UpdatePreview();
+        }, false);
+    }
+    const validTags = {{ validTags | tojson }};
+
+    /* Converts the silly minecraft types to my own more easily usable ones. */
+    const EnchantmentsList = {
+        // Vanilla
+        "aqua_affinity": "Aqua Affinity",
+        "bane_of_arthropods": "Bane of Arthropods",
+        "binding_curse": "Curse of Binding",
+        "blast_protection": "Blast Protection",
+        "breach": "Breach",
+        "channeling": "Channeling",
+        "density": "Density",
+        "depth_strider": "Depth Strider",
+        "efficiency": "Efficiency",
+        "feather_falling": "Feather Falling",
+        "fire_aspect": "Fire Aspect",
+        "fire_protection": "Fire Protection",
+        "flame": "Flame",
+        "fortune": "Fortune",
+        "frost_walker": "Frost Walker",
+        "impaling": "Impaling",
+        "infinity": "Infinity",
+        "knockback": "Knockback",
+        "looting": "Looting",
+        "loyalty": "Loyalty",
+        "luck_of_the_sea": "Luck of the Sea",
+        "lure": "Lure",
+        "mending": "Mending",
+        "multishot": "Multishot",
+        "piercing": "Piercing",
+        "power": "Power",
+        "projectile_protection": "Projectile Protection",
+        "protection": "Protection",
+        "punch": "Punch",
+        "quick_charge": "Quick Charge",
+        "respiration": "Respiration",
+        "riptide": "Riptide",
+        "sharpness": "Sharpness",
+        "silk_touch": "Silk Touch",
+        "smite": "Smite",
+        "soul_speed": "Soul Speed",
+        "sweeping_edge": "Sweeping Edge",
+        "swift_sneak": "Swift Sneak",
+        "thorns": "Thorns",
+        "unbreaking": "Unbreaking",
+        "vanishing_curse": "Curse of Vanishing",
+        "wind_burst": "Wind Burst",
+        "flame_walker": "Flame Walker",
+
+        // MysticMC
+        "thrifty": "Thrifty",
+        "tunnel": "Tunnel",
+        "smelter": "Smelter",
+
+        // BlossomCraft
+        "sonic": "Sonic",
+        "ice_aspect": "Ice Aspect",
+        "saturation": "Saturation",
+        "ender_bow": "Ender Bow",
+        "haste": "Haste",
+        "exp_hunter": "Exp Hunter",
+        "rage": "Rage",
+        "wither": "Wither",
+        "replanter": "Replanter"
+    };
+
+    const EnchantmentsLevelOneMaxList = [
+        "mending",
+        "vanishing_curse",
+        "aqua_affinity",
+        "binding_curse",
+        "channeling",
+        "flame",
+        "infinity",
+        "multishot",
+        "silk_touch",
+
+        // MysticMC
+        "smelter",
+        "flame_walker",
+
+        // BlossomCraft
+        "ender_bow",
+        "rage",
+        "replanter"
+    ];
+
+    const ColorCodes = {
+        "black": "mc-black",
+        "dark_blue": "mc-dark-blue",
+        "dark_green": "mc-dark-green",
+        "dark_aqua": "mc-dark-aqua",
+        "dark_red": "mc-dark-red",
+        "dark_purple": "mc-dark-purple",
+        "gold": "mc-gold",
+        "gray": "mc-gray",
+        "dark_gray": "mc-dark-gray",
+        "blue": "mc-blue",
+        "green": "mc-green",
+        "aqua": "mc-aqua",
+        "red": "mc-red",
+        "light_purple": "mc-light-purple",
+        "yellow": "mc-yellow",
+        "white": "mc-white"
+    };
+
+
+
+    function convertEnchantmentsToHTML(enchantments, bypass = false) {
+        if (enchantments && typeof enchantments === 'object' && enchantments.levels) {
+            enchantments = enchantments.levels;
+        }
+        return Object.entries(enchantments).reduce((acc, [enchant, level]) => {
+            let name = enchant.replace("minecraft:", "");
+            if (!bypass && name === "feather_falling" && level === 6) return acc;
+
+            let label = EnchantmentsList[name] || name;
+            let display = EnchantmentsLevelOneMaxList.includes(name) ? label : `${label} ${level}`;
+
+            if (!EnchantmentsList[name]) console.warn(`Unknown enchantment encountered: ${name} ${level}`);
+
+            acc.push(`<span class=\"mc-gray\">${display}</span>`);
+            return acc;
+        }, []);
+    }
+
+    function convertEnchantmentsToHumanReadable(enchantments, bypass = false) {
+        if (enchantments && typeof enchantments === 'object' && enchantments.levels) {
+            enchantments = enchantments.levels;
+        }
+        return Object.entries(enchantments).reduce((acc, [enchant, level]) => {
+            let name = enchant.replace("minecraft:", "");
+            if (!bypass && name === "feather_falling" && level === 6) return acc;
+
+            let label = EnchantmentsList[name] || name;
+            let display = EnchantmentsLevelOneMaxList.includes(name) ? label : `${label} ${level}`;
+
+            if (!EnchantmentsList[name]) console.warn(`Unknown enchantment encountered: ${name} ${level}`);
+
+            acc.push(display);
+            return acc;
+        }, []);
+    }
+
+    function convertItemTypes(itemType) {
+        const itemTypesToCheck = [
+            "helmet", "chestplate", "leggings", "boots", "elytra", "pickaxe",
+            "axe", "hoe", "shovel", "rod", "sword", "crossbow", "bow", "trident", "mace"
+        ];
+
+        const cleanType = itemType.replace("minecraft:", "");
+
+        for (const type of validTags) {
+            if (type === "rod" && cleanType === "fishing_rod") return "rod";
+            if (type === "rod" && cleanType !== "fishing_rod") continue;
+            if (cleanType.includes(type.toLowerCase())) return type;
+        }
+
+        return null;
+    }
+
+    function extractWinChanceFromLore(ItemLoreHuman) {
+        for (const line of ItemLoreHuman) {
+            if (line.includes("Win Chance: ")) {
+                return line.replace("Win Chance: ", "").replace("%", "");
+            }
+        }
+        return null;
+    }
+    function extractRarityFromLore(ItemLoreHuman) {
+        for (const line of ItemLoreHuman) {
+            if (line.includes("Rarity: ")) {
+                return line.replace("Rarity: ", "");
+            }
+        }
+        return null;
+    }
+
+    function detectInfiniteBlock(ItemLoreHTML, ItemNameHuman) {
+        let InfiniteBlock = 0;
+        for (const line of ItemLoreHTML) {
+            if (line.toLowerCase().includes("infinite")) {
+                InfiniteBlock = 1;
+            }
+        }
+        if ((ItemNameHuman.toLowerCase().includes("infinite") || ItemNameHuman.toLowerCase().includes("paint")) &&
+            ItemNameHuman !== "✦ Quest - PAINT CYCLER ✦") {
+            InfiniteBlock = 1;
+        }
+        return InfiniteBlock;
+    }
+    function takeScreenshot() {
+        const targetElement = document.getElementById('screenshotMarker');
+
+        html2canvas(targetElement).then(canvas => {
+            const imageDataURL = canvas.toDataURL('image/png');
+
+            // Display the captured image
+            const img = document.createElement('img');
+            img.src = imageDataURL;
+            document.body.appendChild(img);
+
+            // Optionally, trigger download
+            const link = document.createElement('a');
+            link.href = imageDataURL;
+            link.download = 'item.png';
+            link.click();
+            link.remove()
+        });
+    }
+
+    function flattenMCTextComponent(component, parentStyles = {}) {
+        const parts = [];
+
+        // Handle string input
+        if (typeof component === "string") {
+            try {
+                component = JSON.parse(component);
+            } catch {
+                return [{ text: component }];
+            }
+        }
+
+        // Guard against invalid input
+        if (!component || typeof component !== "object") return [];
+        // Merge styles from parent
+        const currentStyles = { ...parentStyles };
+        if (component.color !== undefined) currentStyles.color = component.color;
+        if (component.bold !== undefined) currentStyles.bold = component.bold;
+        if (component.italic !== undefined) currentStyles.italic = component.italic;
+        if (component.underlined !== undefined) currentStyles.underlined = component.underlined;
+        if (component.obfuscated !== undefined) currentStyles.obfuscated = component.obfuscated;
+        // If this component itself has text, record it
+        if (component.text && component.text !== "") {
+            parts.push({ text: component.text, ...currentStyles });
+        }
+
+        // If there’s an "extra", recurse into it
+        if (component.extra && Array.isArray(component.extra)) {
+            for (const child of component.extra) {
+                parts.push(...flattenMCTextComponent(child, currentStyles));
+            }
+        }
+
+        return parts;
+    }
+
+    // Convert Minecraft text component to HTML
+    function convertMCLineToHTML(line) {
+        const parts = flattenMCTextComponent(line);
+        if (!parts.length) return "";
+
+        let html = "";
+        for (const part of parts) {
+            let text = part.text;
+
+            let styles = "";
+            let colorClass = "";
+
+            if (part.color && ColorCodes[part.color]) {
+                colorClass += ColorCodes[part.color];
+            } else if (part.color) {
+                styles += `color:${part.color};`;
+            }
+
+            if (part.bold) styles += "font-weight:bold;";
+            if (part.italic) styles += "font-style:italic;";
+            if (part.underlined) styles += "text-decoration:underline;";
+
+            if (part.obfuscated)
+                text = `<span class="mc-obfuscated">${text}</span>`;
+
+            html += `<span class="${colorClass}" style="${styles}">${text}</span>`;
+        }
+
+        // Check if html contains any non-whitespace text content
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        if (!tempDiv.textContent.trim()) return "";
+
+        return html;
+    }
+
+    // Convert Minecraft text component to plain human-readable text
+    function convertMCLineToHumanReadable(line) {
+        const parts = flattenMCTextComponent(line);
+        return parts.map(p => p.text).join("");
+    }
+
+    // Updated UpdatePreview function
+    function UpdatePreview() {
+        const rawData = JSON.parse(rawDataTextarea.value);
+        let finalItemType = convertItemTypes(rawData.id);
+
+        const itemName = rawData.components["minecraft:custom_name"];
+        const finalItemNameHTML = convertMCLineToHTML(itemName);
+        const finalItemNameHuman = convertMCLineToHumanReadable(itemName).replaceAll("§", "").replaceAll("&", "");
+
+        let EnchantmentsHTML = [];
+        let EnchantmentsHuman = [];
+        if ("minecraft:enchantments" in rawData.components) {
+            const enchantments = rawData.components["minecraft:enchantments"];
+            EnchantmentsHTML = convertEnchantmentsToHTML(enchantments);
+            EnchantmentsHuman = convertEnchantmentsToHumanReadable(enchantments);
+        }
+
+        let ItemLoreHTML = [];
+        let ItemLoreHuman = [];
+        if (rawData.components["minecraft:lore"]) {
+            for (const loreLine of rawData.components["minecraft:lore"]) {
+                ItemLoreHTML.push(convertMCLineToHTML(loreLine));
+                ItemLoreHuman.push(convertMCLineToHumanReadable(loreLine).replaceAll("§", "").replaceAll("&", ""));
+            }
+        }
+
+        const Unbreakable = "minecraft:unbreakable" in rawData.components;
+
+        // Build final HTML preview
+        let finalHTML = `<div>${finalItemNameHTML}</div>`;
+        for (const enchant of EnchantmentsHTML) finalHTML += `<div>${enchant}</div>`;
+        for (const line of ItemLoreHTML) finalHTML += `<div>${line || "&nbsp;"}</div>`;
+        if (Unbreakable) finalHTML += `<div><span class="mc-blue">Unbreakable</span></div>`;
+        finalHTML += `<div><span class='mc-dark-gray'>${rawData.id}</span></div>`;
+
+        if (detectInfiniteBlock(ItemLoreHuman, finalItemNameHuman) === 1) finalItemType = "Infinite";
+
+        // Build human-readable text
+        let finalHuman = `${finalItemNameHuman} `;
+        finalHuman += EnchantmentsHuman.join(" ");
+        finalHuman += ItemLoreHuman.join(" ");
+        if (Unbreakable) finalHuman += " Unbreakable";
+        finalHuman += ` ${rawData.id}`
+
+        WinPercentage = extractWinChanceFromLore(ItemLoreHuman);
+        RarityHuman = extractRarityFromLore(ItemLoreHuman);
+        RarityHTML = extractRarityFromLore(ItemLoreHTML);
+
+        // Update HTML elements
+        document.getElementById("itemPreview").innerHTML = finalHTML;
+        if (finalItemType) document.getElementById('PrimaryTagGroup').value = finalItemType;
+        document.getElementById('WinPercentageGroup').value = WinPercentage;
+        document.getElementById('RarityGroup').value = RarityHuman;
+        document.getElementById('RarityHTMLGroup').value = RarityHTML;
+        document.getElementById('ItemNameGroup').value = finalItemNameHuman;
+        document.getElementById('ItemNameHTMLGroup').value = finalItemNameHTML;
+        document.getElementById('RawData').value = JSON.stringify(rawData);
+        document.getElementById('HumanData').value = finalHuman;
+        document.getElementById('HTMLData').value = finalHTML;
+
+        // takeScreenshot()
+    }
+
+
+
+
+</script>
+
+<script>
+function prettifyJSON() {
+    const rawBox = document.getElementById("rawData");
+    if (!rawBox || !rawBox.value.trim()) return;
+    try {
+        let parsed = JSON.parse(rawBox.value);
+        if (parsed.components && Array.isArray(parsed.components["minecraft:lore"])) {
+            parsed.components["minecraft:lore"] = parsed.components["minecraft:lore"].map(line => {
+                if (typeof line === "string") {
+                    try {
+                        return JSON.parse(line);
+                    } catch (err) {
+                        return line;
+                    }
+                }
+                return line;
+            });
+        }
+        rawBox.value = JSON.stringify(parsed, null, 4);
+        if (typeof UpdatePreview === "function") {
+            UpdatePreview();
+        }
+    } catch (e) {
+        console.error("JSON formatting error:", e);
+    }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    const rawBox = document.getElementById("rawData");
+    if (rawBox && rawBox.value.trim().length > 0) {
+        prettifyJSON();
+        try {
+            UpdatePreview();
+        } catch (e) {
+            console.log("Could not auto-parse preloaded RawData:", e);
+        }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const editForm = document.querySelector('form[action=""]') || document.forms[0];
+    if (editForm) {
+        editForm.addEventListener('submit', () => {
+            const rawBox = document.getElementById("rawData");
+            const hiddenRaw = document.getElementById("RawData");
+            if (rawBox && hiddenRaw) {
+                hiddenRaw.value = rawBox.value;
+            }
+        });
+    }
+});
+
+</script>
 {% endblock %}

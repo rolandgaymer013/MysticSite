@@ -191,14 +191,20 @@ def manageItem(itemID):
                 item.WinPercentage = request.form.get("WinPercentage", item.WinPercentage)
                 item.Notes = request.form.get("Notes", item.Notes)
                 item.ItemName = request.form.get("ItemName", item.ItemName)
+                item.ItemNameHTML = request.form.get("ItemNameHTML", item.ItemNameHTML)
+                item.RawData = request.form.get("RawData", item.RawData)
+                item.ItemHuman = request.form.get("HumanData", item.ItemHuman)
+                item.ItemHTML = request.form.get("HTMLData", item.ItemHTML)
+                item.RarityHuman = request.form.get("RarityHuman", item.RarityHuman)
+                item.RarityHTML = request.form.get("RarityHTML", item.RarityHTML)
                 item.ConnectedItems = request.form.get("ConnectedItems", item.ConnectedItems)
                 new = item.to_dict("*")
                 db.session.commit()
                 for key in old.keys():
                     if old[key] != new[key]:
                         uploadLog(current_user, "Item", f"{item.ItemName} | {key} | '{old[key]}'-->'{new[key]}'.", item.id)
-                    
-                flash(f"{item.ItemNameHTML} updated successfully!", "dark")
+
+                flash(f"{item.ItemNameHTML} updated successfully!", "dark")                
     return render_template("admin/crateitems/manageItem.html", 
                            item = item,
                            validTags = config.validTags,
@@ -612,13 +618,17 @@ def manageMiscItem(itemID):
                 item.GroupID = request.form.get("Group", item.GroupID)
                 item.Notes = request.form.get("Notes", item.Notes)
                 item.ItemName = request.form.get("ItemName", item.ItemName)
+                item.ItemNameHTML = request.form.get("ItemNameHTML", item.ItemNameHTML)
+                item.RawData = request.form.get("RawData", item.RawData)
+                item.ItemHuman = request.form.get("HumanData", item.ItemHuman)
+                item.ItemHTML = request.form.get("HTMLData", item.ItemHTML)
                 new = item.to_dict("*")
                 db.session.commit()
                 for key in old.keys():
                     if old[key] != new[key]:
                         uploadLog(current_user, "Misc Item", f"{item.ItemName} | {key} | '{old[key]}'-->'{new[key]}'.", item.id)
-                    
-                flash(f"{item.ItemNameHTML} updated successfully!", "dark")
+
+                flash(f"{item.ItemNameHTML} updated successfully!", "dark")    
     return render_template("admin/miscitems/manageItem.html", 
                            item = item,
                            currentGroups = formattedGroups)
